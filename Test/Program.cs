@@ -15,7 +15,7 @@ namespace Test
             List<Attr> attrs;
             bool doThis = false;
 
-            doThis = true;
+            doThis = false;
             if (doThis)
             {
                 Console.WriteLine("샘플1");
@@ -246,7 +246,6 @@ namespace Test
 
                 Console.WriteLine();
             }
-
 
             doThis = false;
             if (doThis)

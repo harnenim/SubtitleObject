@@ -919,6 +919,11 @@ namespace Subtitle
 
                     int start = 0;
                     index = txt.IndexOf('>', pos + 6) + 1;
+                    if (index == 0)
+                    {
+                        index = txt.Length;
+                        break;
+                    }
                     string[] attrs = txt.Substring(pos + 6, index - pos - 7).ToLower().Split(' ');
                     foreach (string attr in attrs)
                     {
@@ -934,14 +939,17 @@ namespace Subtitle
                 else if (txt.Length > pos + 4 && txt.Substring(pos, 3).ToUpper().Equals("<P "))
                 {
                     index = txt.IndexOf('>', pos + 3) + 1;
+                    if (index == 0)
+                    {
+                        index = txt.Length;
+                        break;
+                    }
                     switch (txt[index - 2])
                     {
                         case ' ':
-                            //last.syncType = 1;
                             last.syncType = SyncType.frame;
                             break;
                         case '\t':
-                            //last.syncType = 2;
                             last.syncType = SyncType.inner;
                             break;
                     }
@@ -974,11 +982,14 @@ namespace Subtitle
 
             foreach (Smi smi in body)
             {
-                if (smi.text[0] == '\n')
-                    smi.text = smi.text.Substring(1);
+                if (smi.text.Length > 0)
+                {
+                    if (smi.text[0] == '\n')
+                        smi.text = smi.text.Substring(1);
 
-                if (smi.text.Length > 1 && smi.text[smi.text.Length - 1] == '\n')
-                    smi.text = smi.text.Substring(0, smi.text.Length - 1);
+                    if (smi.text.Length > 1 && smi.text[smi.text.Length - 1] == '\n')
+                        smi.text = smi.text.Substring(0, smi.text.Length - 1);
+                }
             }
 
             return this;
