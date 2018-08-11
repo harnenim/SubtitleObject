@@ -138,12 +138,12 @@ namespace Subtitle
     public class Attr
     {
         public string text = "";
-        public bool b = false;
-        public bool i = false;
-        public bool u = false;
-        public int fs = 0;
-        public string fn = "";
-        public string fc = "";
+        public bool b = false; // Bold
+        public bool i = false; // Italic
+        public bool u = false; // Underline
+        public int fs = 0;     // FontSize
+        public string fn = ""; // FontName
+        public string fc = ""; // Fontcolor
         public int fade = 0;
         public TypingAttr typing = null;
         public class TypingAttr
@@ -233,25 +233,31 @@ namespace Subtitle
             subtitle.FromAttr(attrs);
         }
 
+        public string ToHtml()
+        {
+            if (text == null | text.Length == 0)
+                return "";
+
+            string css = "";
+            if (b) css += "font-weight: bold;";
+            if (i) css += "font-style: italic;";
+            if (u) css += "font-decoration: underline;";
+            if (fs > 0) css += "font-size: " + fs + "px; line-height: " + (11 + 4 * fs) + "px;";
+            if (fn != null && fn.Length > 0) css += "font-family: '" + fn + "';";
+            if (fc != null && fc.Length > 0) css += "color: #" + fc + ";";
+            return "<span" + (css.Length > 0 ? " style=\"" + css + "\"" : "") + ">"
+                + text // C#엔 html escape 라이브러리 뭐 있나 찾기 귀찮아서 아직
+                    .Replace(" ", "&nbsp;")
+                    .Replace("<", "&lt;")
+                    .Replace(">", "&gt;")
+                    .Replace("\n", "​<br>​")
+                + "</span>";
+        }
         public static string ToHtml(List<Attr> attrs)
         {
             string result = "";
             foreach (Attr attr in attrs)
-            {
-                if (attr.text == null | attr.text.Length == 0)
-                    continue;
-
-                string css = "";
-                if (attr.b) css += "font-weight: bold;";
-                if (attr.i) css += "font-style: italic;";
-                if (attr.u) css += "font-decoration: underline;";
-                if (attr.fs > 0) css += "font-size: " + attr.fs + "px; line-height: " + (11 + 4 * attr.fs) + "px;";
-                if (attr.fn != null && attr.fn.Length > 0) css += "font-family: '" + attr.fn + "';";
-                if (attr.fc != null && attr.fc.Length > 0) css += "color: #" + attr.fc + ";";
-                result += "<span" + (css.Length > 0 ? " style=\"" + css + "\"" : "") + ">"
-                    + attr.text.Replace(" ", "&nbsp;").Replace("\n", "​<br>​")
-                    + "</span>";
-            }
+                result += attr.ToHtml();
             return result;
         }
     }
