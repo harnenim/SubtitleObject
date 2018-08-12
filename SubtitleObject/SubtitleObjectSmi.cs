@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -520,25 +521,25 @@ namespace Subtitle
                     switch (tagName)
                     {
                         case "B":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", ""));
                             if (last.text.Length > 0)
                                 result.Add((last = new Attr()));
                             SetStyle(last, status.SetB(false));
                             break;
                         case "I":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", ""));
                             if (last.text.Length > 0)
                                 result.Add((last = new Attr()));
                             SetStyle(last, status.SetI(false));
                             break;
                         case "U":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", ""));
                             if (last.text.Length > 0)
                                 result.Add((last = new Attr()));
                             SetStyle(last, status.SetU(false));
                             break;
                         case "FONT":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", ""));
                             if (last.text.Length > 0)
                                 result.Add((last = new Attr()));
                             SetStyle(last, status.SetFont(null));
@@ -552,41 +553,41 @@ namespace Subtitle
                     switch (tagName)
                     {
                         case "B":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", ""));
                             if (last.text.Length > 0)
                                 result.Add((last = new Attr()));
                             SetStyle(last, status.SetB(true));
                             break;
                         case "I":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", ""));
                             if (last.text.Length > 0)
                                 result.Add((last = new Attr()));
                             SetStyle(last, status.SetI(true));
                             break;
                         case "U":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", ""));
                             if (last.text.Length > 0)
                                 result.Add((last = new Attr()));
                             SetStyle(last, status.SetU(true));
                             break;
                         case "FONT":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", ""));
                             if (last.text.Length > 0)
                                 result.Add((last = new Attr()));
                             SetStyle(last, status.SetFont(attrs));
                             break;
                         case "BR":
-                            last.text += text.Substring(index, pos - index).Replace("\n", "") + "\n";
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, pos - index).Replace("\n", "")) + "\n";
                             break;
                         default:
-                            last.text += text.Substring(index, attrPos - index).Replace("\n", "");
+                            last.text += WebUtility.HtmlDecode(text.Substring(index, attrPos - index).Replace("\n", ""));
                             break;
                     }
                 }
 
                 index = attrPos;
             }
-            last.text += text.Substring(index);
+            last.text += WebUtility.HtmlDecode(text.Substring(index));
 
             return result;
         }
@@ -636,7 +637,7 @@ namespace Subtitle
                     }
                 }
 
-                text += attr.text;
+                text += WebUtility.HtmlEncode(attr.text);
                 last = attr;
             }
 
@@ -803,6 +804,7 @@ namespace Subtitle
                 else if (lower.IndexOf(" typing=") > 0)
                 {
                     // 타이핑은 한 싱크에 하나만 가능
+                    int attrIndex = -1;
                     Attr attr = null;
                     List<Attr> attrs = smi.ToAttr();
                     bool isLastAttr = false;
@@ -811,7 +813,7 @@ namespace Subtitle
                         if (attrs[j].typing != null)
                         {
                             string color = (attrs[j].fc.Length == 6) ? attrs[j].fc : "ffffff";
-                            attr = attrs[j];
+                            attr = attrs[(attrIndex = j)];
                             string remains = "";
                             for (int k = j + 1; k < attrs.Count; k++)
                                 remains += attrs[k].text;
@@ -842,12 +844,20 @@ namespace Subtitle
                     for (int j = 0; j < count; j++)
                     {
                         string text = types[j + typingStart];
-                        attr.text = text + Width.GetAppend(GetLineWidth(text), width) + (isLastAttr ? "​" : "");
+                        attr.text = Width.GetAppend(GetLineWidth(text), width) + (isLastAttr ? "​" : "");
+
+                        List<Attr> tAttrs = new List<Attr>();
+                        tAttrs.AddRange(attrs.GetRange(0, attrIndex));
+                        tAttrs.AddRange(new Smi() { text = text }.ToAttr());
+                        tAttrs.Add(attr);
+                        if (!isLastAttr)
+                            tAttrs.AddRange(attrs.GetRange(attrIndex + 1, attrs.Count - attrIndex - 1));
+
                         smis.Insert(i + j, new Smi()
                         {
                             start = (start * (count - j) + end * (j)) / count,
                             syncType = j == 0 ? smi.syncType : SyncType.inner
-                        }.FromAttr(attrs));
+                        }.FromAttr(tAttrs));
                     }
                     i += count - 1;
                 }

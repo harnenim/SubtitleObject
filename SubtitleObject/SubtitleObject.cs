@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Net;
 using System.Collections.Generic;
 
 namespace Subtitle
@@ -246,11 +247,7 @@ namespace Subtitle
             if (fn != null && fn.Length > 0) css += "font-family: '" + fn + "';";
             if (fc != null && fc.Length > 0) css += "color: #" + fc + ";";
             return "<span" + (css.Length > 0 ? " style=\"" + css + "\"" : "") + ">"
-                + text // C#엔 html escape 라이브러리 뭐 있나 찾기 귀찮아서 아직
-                    .Replace(" ", "&nbsp;")
-                    .Replace("<", "&lt;")
-                    .Replace(">", "&gt;")
-                    .Replace("\n", "​<br>​")
+                + WebUtility.HtmlEncode(text).Replace(" ", "&nbsp;").Replace("\n", "​<br>​")
                 + "</span>";
         }
         public static string ToHtml(List<Attr> attrs)
